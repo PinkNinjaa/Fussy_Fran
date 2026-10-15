@@ -1,10 +1,10 @@
 // Injects a refresh button into the top-left area (next to page navigation arrows).
 // Clicking it reloads the current document/protyle.
+import { getActiveEditor, showMessage } from "siyuan";
 import type FussyFran from "../index";
 
 const REFRESH_BTN_ID = "ff-refresh-btn";
 let observer: MutationObserver | null = null;
-let boundPlugin: any = null;
 
 export function pickRefreshEnabled(plugin: FussyFran): boolean {
     return plugin.data?.["fussy-config.json"]?.ui?.exposeRefresh ?? false;
@@ -12,9 +12,8 @@ export function pickRefreshEnabled(plugin: FussyFran): boolean {
 
 export function initRefreshButton(plugin: FussyFran) {
     if (!pickRefreshEnabled(plugin)) return;
-    boundPlugin = plugin;
     injectButton(plugin);
-    // Re-check on layout changes
+    // Re-inject if the toolbar is rebuilt (e.g. switching to a window that has #barBack).
     if (!observer) {
         observer = new MutationObserver(() => {
             if (!document.getElementById(REFRESH_BTN_ID)) {
@@ -32,7 +31,6 @@ export function destroyRefreshButton() {
         observer.disconnect();
         observer = null;
     }
-    boundPlugin = null;
 }
 
 function injectButton(plugin: FussyFran) {
@@ -46,15 +44,13 @@ function injectButton(plugin: FussyFran) {
     btn.title = plugin.i18n.refreshButton || "Refresh";
     btn.innerHTML = `<svg><use xlink:href="#iconRefresh"></use></svg>`;
     btn.addEventListener("click", () => {
-        try {
-            const editor = (plugin as any).getEditor?.();
-            if (editor?.protyle) {
-                editor.protyle.reload?.();
-            } else {
-                window.location.reload();
-            }
-        } catch {
-            window.location.reload();
+        // Reload only the active editor instead of the whole app window.
+        const editor = getActiveEditor();
+        if (editor) {
+            editor.reload(true);
+        } else {
+            // No active editor (e.g. a non-doc tab is focused) — nothing to reload.
+            showMessage(plugin.i18n.refreshNoEditor || "No document is active");
         }
     });
 

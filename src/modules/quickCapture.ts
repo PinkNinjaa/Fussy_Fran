@@ -167,12 +167,10 @@ function isSafeHttpUrl(value: string): boolean {
 
 async function saveToDaily(plugin: FussyFran, notebookId: string, text: string) {
     if (!notebookId) throw new Error(plugin.i18n.quickCaptureNeedDailyNb || "Pick a daily-note notebook first (Settings → Fussy_Fran).");
-    const compact = todayCompact();
-    let docId = await getDailyDocId(notebookId, compact);
+    let docId = await getDailyDocId(notebookId, todayCompact());
     if (!docId) {
         // Fall back to hpath date form used by older daily notes.
-        const { todayStr } = await import("../libs/syapi");
-        docId = await getDailyDocId(notebookId, todayStr().slice(0, 10));
+        docId = await getDailyDocId(notebookId, todayStr());
     }
     if (!docId) throw new Error(plugin.i18n.quickCaptureNoDaily || "Today's daily note not found — create it first (Ctrl/Cmd+D).");
     const md = text.split("\n").map(l => l.trim() ? `- ${l}` : "").join("\n") || `- ${text}`;
@@ -191,13 +189,15 @@ async function saveAsZettel(plugin: FussyFran, notebookId: string, basePath: str
     const id = await createDocWithMd(notebookId, `${dir}/${stamp}`, text);
     if (!id) throw new Error("createDocWithMd failed");
     showMessage(plugin.i18n.quickCaptureSavedZettel || `Card created`);
-    // Offer to open it.
-    const menu = new Menu("ff-open-zettel");
+    // Offer to open it. The capture dialog is destroyed just after this returns,
+    // so anchor the menu near the middle of the window.
+    const menu = new Menu("ff-open-zettel", () => {});
     menu.addItem({
         icon: "iconFile",
         label: plugin.i18n.quickCaptureOpen || "Open new card",
         click: () => openTab({ app: plugin.app, doc: { id } }),
     });
+    menu.open({ x: Math.round(window.innerWidth / 2) - 90, y: Math.round(window.innerHeight / 2), isLeft: false });
 }
 
 function escapeHtml(s: string): string {

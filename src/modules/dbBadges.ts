@@ -32,7 +32,11 @@ const onStatic = () => boundPlugin && scheduleRefresh(boundPlugin);
 const onDynamic = () => boundPlugin && scheduleRefresh(boundPlugin);
 const onSwitch = () => boundPlugin && scheduleRefresh(boundPlugin);
 const onWs = (e: any) => {
-    if (boundPlugin && e?.detail?.cmd === "transactions") scheduleRefresh(boundPlugin);
+    if (boundPlugin && e?.detail?.cmd === "transactions") {
+        // Edits may change AV values; drop the cache so badges aren't stale.
+        cache.clear();
+        scheduleRefresh(boundPlugin);
+    }
 };
 
 export function pickDbConfig(plugin: FussyFran): DbConfig {

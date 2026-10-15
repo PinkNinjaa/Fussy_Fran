@@ -119,6 +119,11 @@ export default class FussyFran extends Plugin {
             accelerator: (this.data[CONF_KEY] as FussyConfig).quickCapture.hotkey || "⇧⌘Q",
             click: () => openQuickCapture(this),
         });
+        menu.addItem({
+            icon: "iconSettings",
+            label: this.i18n.settingsButton || "Settings",
+            click: () => this.openSettingsDialog(),
+        });
         if (rect && rect.width > 0) {
             menu.open({ x: rect.right, y: rect.bottom, isLeft: true });
         } else {
@@ -156,8 +161,11 @@ export default class FussyFran extends Plugin {
                         <div class="ff-settings-row">
                             <label>${this.i18n.setDefaultTarget || "Default target"}
                                 <select class="b3-select fn__block ff-qc-target">
-                                    <option value="daily" ${cfg.quickCapture.defaultTarget === "daily" ? "selected" : ""}>Daily note</option>
-                                    <option value="zettel" ${cfg.quickCapture.defaultTarget === "zettel" ? "selected" : ""}>Timestamp note</option>
+                                    <option value="inbox" ${cfg.quickCapture.defaultTarget === "inbox" ? "selected" : ""}>${this.i18n.quickCaptureInbox || "Unsorted inbox"}</option>
+                                    <option value="daily" ${cfg.quickCapture.defaultTarget === "daily" ? "selected" : ""}>${this.i18n.quickCaptureDaily || "Daily note"}</option>
+                                    <option value="zettel" ${cfg.quickCapture.defaultTarget === "zettel" ? "selected" : ""}>${this.i18n.quickCaptureZettel || "Timestamp note"}</option>
+                                    <option value="database" ${cfg.quickCapture.defaultTarget === "database" ? "selected" : ""}>${this.i18n.quickCaptureDatabase || "Favorite database"}</option>
+                                    <option value="page" ${cfg.quickCapture.defaultTarget === "page" ? "selected" : ""}>${this.i18n.quickCapturePage || "Favorite page"}</option>
                                 </select>
                             </label>
                         </div>
@@ -175,6 +183,17 @@ export default class FussyFran extends Plugin {
                         <div class="ff-settings-row">
                             <label class="ff-settings-check">${this.i18n.setDbNames || "Show field names"}
                                 <input type="checkbox" class="b3-switch ff-db-names" ${cfg.db.showFieldNames ? "checked" : ""}/>
+                            </label>
+                        </div>
+                        <div class="ff-settings-row">
+                            <label>${this.i18n.setDbMax || "Max value length"}<input type="number" min="1" class="b3-text-field fn__block ff-db-max" value="${cfg.db.maxLength}"/></label>
+                        </div>
+                        <div class="ff-settings-row">
+                            <label>${this.i18n.setDbPosition || "Badge position"}
+                                <select class="b3-select fn__block ff-db-pos">
+                                    <option value="below" ${cfg.db.position === "below" ? "selected" : ""}>Below</option>
+                                    <option value="above" ${cfg.db.position === "above" ? "selected" : ""}>Above</option>
+                                </select>
                             </label>
                         </div>
                     </div>
@@ -215,14 +234,21 @@ export default class FussyFran extends Plugin {
             const dbEnabled = root.querySelector(".ff-db-enabled") as HTMLInputElement;
             const dbHidden = root.querySelector(".ff-db-hidden") as HTMLInputElement;
             const dbNames = root.querySelector(".ff-db-names") as HTMLInputElement;
+            const dbMax = root.querySelector(".ff-db-max") as HTMLInputElement;
+            const dbPos = root.querySelector(".ff-db-pos") as HTMLSelectElement;
             const uiRefresh = root.querySelector(".ff-ui-refresh") as HTMLInputElement;
             cfg.quickCapture.zettelPath = pathInput.value;
-            cfg.quickCapture.defaultTarget = targetSel.value as "zettel" | "daily";
+            cfg.quickCapture.defaultTarget = targetSel.value as QuickCaptureConfig["defaultTarget"];
             cfg.db.enabled = dbEnabled.checked;
             cfg.db.hiddenFields = dbHidden.value;
             cfg.db.showFieldNames = dbNames.checked;
+            cfg.db.maxLength = Math.max(1, parseInt(dbMax.value, 10) || DEFAULT_DB.maxLength);
+            cfg.db.position = dbPos.value === "above" ? "above" : "below";
             cfg.ui.exposeRefresh = uiRefresh.checked;
             await this.saveConfig();
+            // Re-init badges so the new config takes effect; destroy first to
+            // avoid stacking duplicate eventBus listeners.
+            destroyDbBadges(this);
             initDbBadges(this);
             if (cfg.ui.exposeRefresh) {
                 initRefreshButton(this);

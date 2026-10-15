@@ -2,6 +2,11 @@
 // provided by SiYuan at runtime via require("siyuan")). Kept as `any`-ish
 // so `tsc --noEmit` passes without pulling the full petal types.
 declare module "siyuan" {
+    /** Minimal view of SiYuan's Protyle editor instance (subset used by this plugin). */
+    export interface Protyle {
+        reload(focus?: boolean, updateReadonly?: boolean): void;
+        destroy(): void;
+    }
     export class Plugin {
         app: any;
         i18n: any;
@@ -15,7 +20,7 @@ declare module "siyuan" {
         saveData(key: string, data: any): Promise<void>;
         removeData(key: string): Promise<void>;
         addIcons(svg: string): void;
-        getEditor(): any;
+        openSetting(): void;
     }
     export class Dialog {
         element: HTMLElement;
@@ -33,6 +38,8 @@ declare module "siyuan" {
     }
     export function fetchPost(url: string, data: any, cb?: (res: any) => void): void;
     export function fetchSyncPost(url: string, data: any): Promise<any>;
+    /** Editor of the currently focused (or main) tab; undefined when none. */
+    export function getActiveEditor(wndActive?: boolean): Protyle | undefined;
     export function showMessage(msg: string, timeout?: number): void;
     export function openTab(opts: any): Promise<any>;
     export function openSetting(app: any): void;

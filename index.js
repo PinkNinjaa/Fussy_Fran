@@ -1,12 +1,9 @@
-/* Fussy_Fran v0.1.0 */
+/* Fussy_Fran */
 "use strict";
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __esm = (fn, res) => function __init() {
-  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
-};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -21,131 +18,13 @@ var __copyProps = (to, from, except, desc) => {
 };
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// src/libs/syapi.ts
-var syapi_exports = {};
-__export(syapi_exports, {
-  addBlockToAttributeView: () => addBlockToAttributeView,
-  api: () => api,
-  appendBlock: () => appendBlock,
-  createDocWithMd: () => createDocWithMd,
-  deleteBlock: () => deleteBlock,
-  getBlockAttrs: () => getBlockAttrs,
-  getChildBlocks: () => getChildBlocks,
-  getDailyDocId: () => getDailyDocId,
-  listAttributeViews: () => listAttributeViews,
-  listDocuments: () => listDocuments,
-  lsNotebooks: () => lsNotebooks,
-  prependBlock: () => prependBlock,
-  renameDoc: () => renameDoc,
-  setBlockAttrs: () => setBlockAttrs,
-  sql: () => sql,
-  todayCompact: () => todayCompact,
-  todayStr: () => todayStr,
-  updateBlock: () => updateBlock
-});
-function api(url, data) {
-  return new Promise((resolve, reject) => {
-    try {
-      (0, import_siyuan2.fetchPost)(url, data, (res) => {
-        if (res && (res.code === 0 || res.code === void 0)) {
-          resolve(res.data ?? res);
-        } else {
-          reject(new Error(`API ${url} code=${res?.code} msg=${res?.msg}`));
-        }
-      });
-    } catch (e) {
-      reject(e);
-    }
-  });
-}
-async function lsNotebooks() {
-  const data = await api("/api/notebook/lsNotebooks", {});
-  const list = data?.notebooks ?? data ?? [];
-  return (Array.isArray(list) ? list : []).filter((n) => !n.closed);
-}
-async function sql(stmt) {
-  const data = await api("/api/query/sql", { stmt });
-  return Array.isArray(data) ? data : [];
-}
-async function createDocWithMd(notebook, path, markdown) {
-  const data = await api("/api/filetree/createDocWithMd", { notebook, path, markdown });
-  return data;
-}
-async function appendBlock(dataType, data, parentID) {
-  return api("/api/block/appendBlock", { dataType, data, parentID });
-}
-async function prependBlock(dataType, data, parentID) {
-  return api("/api/block/prependBlock", { dataType, data, parentID });
-}
-async function setBlockAttrs(blockID, attrs) {
-  await api("/api/attr/setBlockAttrs", { id: blockID, attrs });
-}
-async function getBlockAttrs(blockID) {
-  const attrs = await api("/api/attr/getBlockAttrs", { id: blockID });
-  return attrs ?? {};
-}
-async function getChildBlocks(parentID) {
-  const escapedParentID = parentID.replace(/'/g, "''");
-  return sql(
-    `SELECT id, parent_id, markdown, created FROM blocks WHERE parent_id = '${escapedParentID}' ORDER BY sort ASC`
-  );
-}
-async function listDocuments(limit = 200) {
-  const safeLimit = Math.max(1, Math.min(Math.floor(limit), 1e3));
-  return sql(
-    `SELECT id, box, content, hpath FROM blocks WHERE type = 'd' ORDER BY updated DESC LIMIT ${safeLimit}`
-  );
-}
-async function listAttributeViews() {
-  const rows = await sql(
-    "SELECT id, box, content FROM blocks WHERE type = 'av' ORDER BY updated DESC"
-  );
-  return rows.map((row) => ({ ...row, name: row.content || row.id }));
-}
-async function updateBlock(blockID, dataType, data) {
-  await api("/api/block/updateBlock", { id: blockID, dataType, data });
-}
-async function deleteBlock(blockID) {
-  await api("/api/block/deleteBlock", { id: blockID });
-}
-async function addBlockToAttributeView(attributeViewID, blockID) {
-  await api("/api/av/addAttributeViewBlocks", {
-    avID: attributeViewID,
-    srcs: [{ id: blockID, isDetached: false }]
-  });
-}
-async function renameDoc(box, path, title) {
-  await api("/api/filetree/renameDoc", { notebook: box, path, title });
-}
-async function getDailyDocId(notebookId, dateYYYYMMDD) {
-  const rows = await sql(
-    `SELECT id FROM blocks WHERE box = '${notebookId}' AND type = 'd' AND (hpath LIKE '/daily note/%${dateYYYYMMDD}%' OR id IN (SELECT root_id FROM attributes WHERE name = 'custom-dailynote-${dateYYYYMMDD}')) LIMIT 1`
-  );
-  return rows?.[0]?.id ?? null;
-}
-function todayStr(d = /* @__PURE__ */ new Date()) {
-  const p = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
-function todayCompact(d = /* @__PURE__ */ new Date()) {
-  const p = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
-}
-var import_siyuan2;
-var init_syapi = __esm({
-  "src/libs/syapi.ts"() {
-    "use strict";
-    import_siyuan2 = require("siyuan");
-  }
-});
-
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
   default: () => FussyFran
 });
 module.exports = __toCommonJS(src_exports);
-var import_siyuan5 = require("siyuan");
+var import_siyuan6 = require("siyuan");
 
 // src/modules/dbBadges.ts
 var import_siyuan = require("siyuan");
@@ -166,7 +45,10 @@ var onStatic = () => boundPlugin && scheduleRefresh(boundPlugin);
 var onDynamic = () => boundPlugin && scheduleRefresh(boundPlugin);
 var onSwitch = () => boundPlugin && scheduleRefresh(boundPlugin);
 var onWs = (e) => {
-  if (boundPlugin && e?.detail?.cmd === "transactions") scheduleRefresh(boundPlugin);
+  if (boundPlugin && e?.detail?.cmd === "transactions") {
+    cache.clear();
+    scheduleRefresh(boundPlugin);
+  }
 };
 function pickDbConfig(plugin) {
   return { ...DEFAULT_DB, ...plugin.data?.["fussy-config.json"]?.db ?? {} };
@@ -344,10 +226,93 @@ function escapeAttr(s) {
 
 // src/modules/quickCapture.ts
 var import_siyuan3 = require("siyuan");
-init_syapi();
+
+// src/libs/syapi.ts
+var import_siyuan2 = require("siyuan");
+function api(url, data) {
+  return new Promise((resolve, reject) => {
+    try {
+      (0, import_siyuan2.fetchPost)(url, data, (res) => {
+        if (res && (res.code === 0 || res.code === void 0)) {
+          resolve(res.data ?? res);
+        } else {
+          reject(new Error(`API ${url} code=${res?.code} msg=${res?.msg}`));
+        }
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+async function lsNotebooks() {
+  const data = await api("/api/notebook/lsNotebooks", {});
+  const list = data?.notebooks ?? data ?? [];
+  return (Array.isArray(list) ? list : []).filter((n) => !n.closed);
+}
+async function sql(stmt) {
+  const data = await api("/api/query/sql", { stmt });
+  return Array.isArray(data) ? data : [];
+}
+async function createDocWithMd(notebook, path, markdown) {
+  const data = await api("/api/filetree/createDocWithMd", { notebook, path, markdown });
+  return data;
+}
+async function appendBlock(dataType, data, parentID) {
+  return api("/api/block/appendBlock", { dataType, data, parentID });
+}
+async function setBlockAttrs(blockID, attrs) {
+  await api("/api/attr/setBlockAttrs", { id: blockID, attrs });
+}
+async function getBlockAttrs(blockID) {
+  const attrs = await api("/api/attr/getBlockAttrs", { id: blockID });
+  return attrs ?? {};
+}
+async function getChildBlocks(parentID) {
+  const escapedParentID = parentID.replace(/'/g, "''");
+  return sql(
+    `SELECT id, parent_id, markdown, created FROM blocks WHERE parent_id = '${escapedParentID}' ORDER BY sort ASC`
+  );
+}
+async function listDocuments(limit = 200) {
+  const safeLimit = Math.max(1, Math.min(Math.floor(limit), 1e3));
+  return sql(
+    `SELECT id, box, content, hpath FROM blocks WHERE type = 'd' ORDER BY updated DESC LIMIT ${safeLimit}`
+  );
+}
+async function listAttributeViews() {
+  const rows = await sql(
+    "SELECT id, box, content FROM blocks WHERE type = 'av' ORDER BY updated DESC"
+  );
+  return rows.map((row) => ({ ...row, name: row.content || row.id }));
+}
+async function updateBlock(blockID, dataType, data) {
+  await api("/api/block/updateBlock", { id: blockID, dataType, data });
+}
+async function deleteBlock(blockID) {
+  await api("/api/block/deleteBlock", { id: blockID });
+}
+async function addBlockToAttributeView(attributeViewID, blockID) {
+  await api("/api/av/addAttributeViewBlocks", {
+    avID: attributeViewID,
+    srcs: [{ id: blockID, isDetached: false }]
+  });
+}
+async function getDailyDocId(notebookId, dateYYYYMMDD) {
+  const rows = await sql(
+    `SELECT id FROM blocks WHERE box = '${notebookId}' AND type = 'd' AND (hpath LIKE '/daily note/%${dateYYYYMMDD}%' OR id IN (SELECT root_id FROM attributes WHERE name = 'custom-dailynote-${dateYYYYMMDD}')) LIMIT 1`
+  );
+  return rows?.[0]?.id ?? null;
+}
+function todayStr(d = /* @__PURE__ */ new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+function todayCompact(d = /* @__PURE__ */ new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
 
 // src/modules/captureStore.ts
-init_syapi();
 var ATTR = {
   status: "custom-ff-capture-status",
   createdAt: "custom-ff-capture-created",
@@ -569,11 +534,9 @@ function isSafeHttpUrl(value) {
 }
 async function saveToDaily(plugin, notebookId, text) {
   if (!notebookId) throw new Error(plugin.i18n.quickCaptureNeedDailyNb || "Pick a daily-note notebook first (Settings \u2192 Fussy_Fran).");
-  const compact = todayCompact();
-  let docId = await getDailyDocId(notebookId, compact);
+  let docId = await getDailyDocId(notebookId, todayCompact());
   if (!docId) {
-    const { todayStr: todayStr2 } = await Promise.resolve().then(() => (init_syapi(), syapi_exports));
-    docId = await getDailyDocId(notebookId, todayStr2().slice(0, 10));
+    docId = await getDailyDocId(notebookId, todayStr());
   }
   if (!docId) throw new Error(plugin.i18n.quickCaptureNoDaily || "Today's daily note not found \u2014 create it first (Ctrl/Cmd+D).");
   const md = text.split("\n").map((l) => l.trim() ? `- ${l}` : "").join("\n") || `- ${text}`;
@@ -592,27 +555,28 @@ async function saveAsZettel(plugin, notebookId, basePath, text) {
   const id = await createDocWithMd(notebookId, `${dir}/${stamp}`, text);
   if (!id) throw new Error("createDocWithMd failed");
   (0, import_siyuan3.showMessage)(plugin.i18n.quickCaptureSavedZettel || `Card created`);
-  const menu = new import_siyuan3.Menu("ff-open-zettel");
+  const menu = new import_siyuan3.Menu("ff-open-zettel", () => {
+  });
   menu.addItem({
     icon: "iconFile",
     label: plugin.i18n.quickCaptureOpen || "Open new card",
     click: () => (0, import_siyuan3.openTab)({ app: plugin.app, doc: { id } })
   });
+  menu.open({ x: Math.round(window.innerWidth / 2) - 90, y: Math.round(window.innerHeight / 2), isLeft: false });
 }
 function escapeHtml2(s) {
   return (s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c);
 }
 
 // src/modules/refreshButton.ts
+var import_siyuan4 = require("siyuan");
 var REFRESH_BTN_ID = "ff-refresh-btn";
 var observer2 = null;
-var boundPlugin2 = null;
 function pickRefreshEnabled(plugin) {
   return plugin.data?.["fussy-config.json"]?.ui?.exposeRefresh ?? false;
 }
 function initRefreshButton(plugin) {
   if (!pickRefreshEnabled(plugin)) return;
-  boundPlugin2 = plugin;
   injectButton(plugin);
   if (!observer2) {
     observer2 = new MutationObserver(() => {
@@ -630,7 +594,6 @@ function destroyRefreshButton() {
     observer2.disconnect();
     observer2 = null;
   }
-  boundPlugin2 = null;
 }
 function injectButton(plugin) {
   const backBtn = document.getElementById("barBack");
@@ -642,23 +605,18 @@ function injectButton(plugin) {
   btn.title = plugin.i18n.refreshButton || "Refresh";
   btn.innerHTML = `<svg><use xlink:href="#iconRefresh"></use></svg>`;
   btn.addEventListener("click", () => {
-    try {
-      const editor = plugin.getEditor?.();
-      if (editor?.protyle) {
-        editor.protyle.reload?.();
-      } else {
-        window.location.reload();
-      }
-    } catch {
-      window.location.reload();
+    const editor = (0, import_siyuan4.getActiveEditor)();
+    if (editor) {
+      editor.reload(true);
+    } else {
+      (0, import_siyuan4.showMessage)(plugin.i18n.refreshNoEditor || "No document is active");
     }
   });
   backBtn.parentElement.insertBefore(btn, backBtn.nextSibling);
 }
 
 // src/modules/triageGallery.ts
-var import_siyuan4 = require("siyuan");
-init_syapi();
+var import_siyuan5 = require("siyuan");
 var refreshGallery = null;
 function refreshTriageGallery() {
   void refreshGallery?.();
@@ -752,7 +710,7 @@ function renderItems(root, items, config, plugin, selected, refresh, message) {
       if (!item || !target) return;
       try {
         await routeCapture(item, target);
-        (0, import_siyuan4.showMessage)(plugin.i18n.triageRouted || "Capture routed");
+        (0, import_siyuan5.showMessage)(plugin.i18n.triageRouted || "Capture routed");
         await refresh();
       } catch (error) {
         showError(message, error);
@@ -824,7 +782,7 @@ async function routeCapture(item, destination) {
   await markCaptureProcessed(item.id, "page", targetId);
 }
 function editCapture(item, plugin, refresh, message) {
-  const dialog = new import_siyuan4.Dialog({
+  const dialog = new import_siyuan5.Dialog({
     title: plugin.i18n.triageEdit || "Edit capture",
     content: `<div class="ff-triage-edit"><textarea class="b3-text-field fn__block" rows="8">${escapeHtml3(item.content)}</textarea><div class="ff-triage-edit-actions"><button class="b3-button b3-button--cancel">${escapeHtml3(plugin.i18n.cancel || "Cancel")}</button><button class="b3-button b3-button--text">${escapeHtml3(plugin.i18n.save || "Save")}</button></div></div>`,
     width: "560px"
@@ -848,7 +806,7 @@ function updateSelectionLabel(root, selected, plugin) {
 function showError(message, error) {
   const text = error instanceof Error ? error.message : String(error);
   message.textContent = text;
-  (0, import_siyuan4.showMessage)(`[Fussy_Fran] ${text}`);
+  (0, import_siyuan5.showMessage)(`[Fussy_Fran] ${text}`);
 }
 function renderSourceUrl(value) {
   try {
@@ -873,7 +831,6 @@ function escapeHtml3(value) {
 }
 
 // src/index.ts
-init_syapi();
 var CONF_KEY = "fussy-config.json";
 var DEFAULTS = {
   quickCapture: { ...DEFAULT_QC },
@@ -905,7 +862,7 @@ function normalizeFavorites(value) {
     (target) => Boolean(target) && typeof target.id === "string" && typeof target.name === "string"
   );
 }
-var FussyFran = class extends import_siyuan5.Plugin {
+var FussyFran = class extends import_siyuan6.Plugin {
   constructor() {
     super(...arguments);
     this.topbarEl = null;
@@ -960,13 +917,18 @@ var FussyFran = class extends import_siyuan5.Plugin {
   }
   showTopbarMenu() {
     const rect = this.topbarEl?.getBoundingClientRect();
-    const menu = new import_siyuan5.Menu("ff-topbar", () => {
+    const menu = new import_siyuan6.Menu("ff-topbar", () => {
     });
     menu.addItem({
       icon: "iconEdit",
       label: this.i18n.quickCapture || "Quick capture",
       accelerator: this.data[CONF_KEY].quickCapture.hotkey || "\u21E7\u2318Q",
       click: () => openQuickCapture(this)
+    });
+    menu.addItem({
+      icon: "iconSettings",
+      label: this.i18n.settingsButton || "Settings",
+      click: () => this.openSettingsDialog()
     });
     if (rect && rect.width > 0) {
       menu.open({ x: rect.right, y: rect.bottom, isLeft: true });
@@ -976,7 +938,7 @@ var FussyFran = class extends import_siyuan5.Plugin {
   }
   openSettingsDialog() {
     const cfg = this.data[CONF_KEY];
-    const dialog = new import_siyuan5.Dialog({
+    const dialog = new import_siyuan6.Dialog({
       title: `Fussy Fran \u2014 ${this.i18n.settingsButton || "Settings"}`,
       content: `<div class="ff-settings-container">
                 <div class="ff-settings-tabs">
@@ -1004,8 +966,11 @@ var FussyFran = class extends import_siyuan5.Plugin {
                         <div class="ff-settings-row">
                             <label>${this.i18n.setDefaultTarget || "Default target"}
                                 <select class="b3-select fn__block ff-qc-target">
-                                    <option value="daily" ${cfg.quickCapture.defaultTarget === "daily" ? "selected" : ""}>Daily note</option>
-                                    <option value="zettel" ${cfg.quickCapture.defaultTarget === "zettel" ? "selected" : ""}>Timestamp note</option>
+                                    <option value="inbox" ${cfg.quickCapture.defaultTarget === "inbox" ? "selected" : ""}>${this.i18n.quickCaptureInbox || "Unsorted inbox"}</option>
+                                    <option value="daily" ${cfg.quickCapture.defaultTarget === "daily" ? "selected" : ""}>${this.i18n.quickCaptureDaily || "Daily note"}</option>
+                                    <option value="zettel" ${cfg.quickCapture.defaultTarget === "zettel" ? "selected" : ""}>${this.i18n.quickCaptureZettel || "Timestamp note"}</option>
+                                    <option value="database" ${cfg.quickCapture.defaultTarget === "database" ? "selected" : ""}>${this.i18n.quickCaptureDatabase || "Favorite database"}</option>
+                                    <option value="page" ${cfg.quickCapture.defaultTarget === "page" ? "selected" : ""}>${this.i18n.quickCapturePage || "Favorite page"}</option>
                                 </select>
                             </label>
                         </div>
@@ -1023,6 +988,17 @@ var FussyFran = class extends import_siyuan5.Plugin {
                         <div class="ff-settings-row">
                             <label class="ff-settings-check">${this.i18n.setDbNames || "Show field names"}
                                 <input type="checkbox" class="b3-switch ff-db-names" ${cfg.db.showFieldNames ? "checked" : ""}/>
+                            </label>
+                        </div>
+                        <div class="ff-settings-row">
+                            <label>${this.i18n.setDbMax || "Max value length"}<input type="number" min="1" class="b3-text-field fn__block ff-db-max" value="${cfg.db.maxLength}"/></label>
+                        </div>
+                        <div class="ff-settings-row">
+                            <label>${this.i18n.setDbPosition || "Badge position"}
+                                <select class="b3-select fn__block ff-db-pos">
+                                    <option value="below" ${cfg.db.position === "below" ? "selected" : ""}>Below</option>
+                                    <option value="above" ${cfg.db.position === "above" ? "selected" : ""}>Above</option>
+                                </select>
                             </label>
                         </div>
                     </div>
@@ -1060,14 +1036,19 @@ var FussyFran = class extends import_siyuan5.Plugin {
       const dbEnabled = root.querySelector(".ff-db-enabled");
       const dbHidden = root.querySelector(".ff-db-hidden");
       const dbNames = root.querySelector(".ff-db-names");
+      const dbMax = root.querySelector(".ff-db-max");
+      const dbPos = root.querySelector(".ff-db-pos");
       const uiRefresh = root.querySelector(".ff-ui-refresh");
       cfg.quickCapture.zettelPath = pathInput.value;
       cfg.quickCapture.defaultTarget = targetSel.value;
       cfg.db.enabled = dbEnabled.checked;
       cfg.db.hiddenFields = dbHidden.value;
       cfg.db.showFieldNames = dbNames.checked;
+      cfg.db.maxLength = Math.max(1, parseInt(dbMax.value, 10) || DEFAULT_DB.maxLength);
+      cfg.db.position = dbPos.value === "above" ? "above" : "below";
       cfg.ui.exposeRefresh = uiRefresh.checked;
       await this.saveConfig();
+      destroyDbBadges(this);
       initDbBadges(this);
       if (cfg.ui.exposeRefresh) {
         initRefreshButton(this);
@@ -1078,7 +1059,7 @@ var FussyFran = class extends import_siyuan5.Plugin {
     });
   }
   initSetting() {
-    const setting = new import_siyuan5.Setting({
+    const setting = new import_siyuan6.Setting({
       confirmCallback: () => this.saveConfig()
     });
     const cfg = () => this.data[CONF_KEY];
@@ -1101,7 +1082,7 @@ var FussyFran = class extends import_siyuan5.Plugin {
             option.selected = target.id === cfg().quickCapture.inboxDocumentId;
             select.add(option);
           }
-        }).catch((error) => (0, import_siyuan5.showMessage)(`[Fussy_Fran] ${error instanceof Error ? error.message : String(error)}`));
+        }).catch((error) => (0, import_siyuan6.showMessage)(`[Fussy_Fran] ${error instanceof Error ? error.message : String(error)}`));
         select.addEventListener("change", () => {
           cfg().quickCapture.inboxDocumentId = select.value;
         });
@@ -1123,7 +1104,7 @@ var FussyFran = class extends import_siyuan5.Plugin {
             option.selected = favorites.has(target.id);
             select.add(option);
           }
-        }).catch((error) => (0, import_siyuan5.showMessage)(`[Fussy_Fran] ${error instanceof Error ? error.message : String(error)}`));
+        }).catch((error) => (0, import_siyuan6.showMessage)(`[Fussy_Fran] ${error instanceof Error ? error.message : String(error)}`));
         select.addEventListener("change", () => {
           cfg().quickCapture.favoriteDatabases = Array.from(select.selectedOptions).map((option) => ({
             id: option.value,
@@ -1149,7 +1130,7 @@ var FussyFran = class extends import_siyuan5.Plugin {
             option.selected = favorites.has(target.id);
             select.add(option);
           }
-        }).catch((error) => (0, import_siyuan5.showMessage)(`[Fussy_Fran] ${error instanceof Error ? error.message : String(error)}`));
+        }).catch((error) => (0, import_siyuan6.showMessage)(`[Fussy_Fran] ${error instanceof Error ? error.message : String(error)}`));
         select.addEventListener("change", () => {
           cfg().quickCapture.favoritePages = Array.from(select.selectedOptions).map((option) => ({
             id: option.value,
@@ -1289,7 +1270,7 @@ var FussyFran = class extends import_siyuan5.Plugin {
     try {
       await this.saveData(CONF_KEY, this.data[CONF_KEY]);
     } catch (e) {
-      (0, import_siyuan5.showMessage)(`[Fussy_Fran] save failed: ${e?.message ?? e}`);
+      (0, import_siyuan6.showMessage)(`[Fussy_Fran] save failed: ${e?.message ?? e}`);
     }
   }
   /** Called by quickCapture dialog to persist notebook picks. */
