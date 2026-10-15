@@ -1,0 +1,63 @@
+{
+  "name": "Fussy_Fran",
+  "author": "Vanessa",
+  "url": "https://github.com/siyuan-note/plugin-sample",
+  "version": "0.1.0",
+  "minAppVersion": "3.8.3",
+  "kernels": [
+    "windows",
+    "linux",
+    "darwin",
+    "ios",
+    "android",
+    "harmony",
+    "docker",
+    "all"
+  ],
+  "backends": [
+    "windows",
+    "linux",
+    "darwin",
+    "ios",
+    "android",
+    "harmony",
+    "docker",
+    "all"
+  ],
+  "frontends": [
+    "desktop",
+    "mobile",
+    "browser-desktop",
+    "browser-mobile",
+    "desktop-window",
+    "all"
+  ],
+  "disabledInPublish": false,
+  "displayName": {
+    "default": "Fussy Fran",
+    "zh-CN": "Fussy Fran"
+  },
+  "description": {
+    "default": "All-in-one helper: quick capture inbox + database badges (more coming)",
+    "zh-CN": "All-in-one helper: quick capture inbox + database badges (more coming)"
+  },
+  "readme": {
+    "default": "README.md",
+    "zh-CN": "README.zh-CN.md"
+  },
+  "icon": "icon.png",
+  "preview": "preview.png",
+  "funding": {
+    "openCollective": "",
+    "patreon": "",
+    "github": "",
+    "custom": [
+      "https://ld246.com/sponsor"
+    ]
+  },
+  "keywords": [
+    "开发者参考",
+    "developer reference",
+    "示例插件"
+  ]
+}
