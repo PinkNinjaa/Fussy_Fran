@@ -44,14 +44,8 @@ function injectButton(plugin: FussyFran) {
     btn.title = plugin.i18n.refreshButton || "Refresh";
     btn.innerHTML = `<svg><use xlink:href="#iconRefresh"></use></svg>`;
     btn.addEventListener("click", () => {
-        // Reload only the active editor instead of the whole app window.
-        const editor = getActiveEditor();
-        if (editor) {
-            editor.reload(true);
-        } else {
-            // No active editor (e.g. a non-doc tab is focused) — nothing to reload.
-            showMessage(plugin.i18n.refreshNoEditor || "No document is active");
-        }
+        // Refresh the whole app UI.
+        window.location.reload();
     });
 
     backBtn.parentElement!.insertBefore(btn, backBtn.nextSibling);

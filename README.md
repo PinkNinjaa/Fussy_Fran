@@ -12,10 +12,14 @@ An all-in-one helper plugin for [SiYuan](https://b3log.org/siyuan/).
   * **Timestamp note** — creates a new doc named by epoch milliseconds in a configurable notebook/path (e.g. `/Cards`), for a zettelkasten-style workflow.
   * **Favorite database** — an Attribute View you picked; the capture is added as a row.
   * **Favorite page** — appends the capture to any document you picked.
+  * **Task blocks** — when the destination is a page (or today's daily note), tick *Add as task block* to insert the capture as checkbox task items instead of plain text.
   * Tags and an optional source URL (validated to http/https); recently used destinations are offered automatically.
 * **Capture inbox (triage gallery)** — a right-bottom dock listing your captures as cards, with filters for unsorted/processed, one-by-one or bulk routing to a page/database, edit, archive, restore, and delete.
 * **Database badges** — a compact, read-only row of Attribute View fields rendered under blocks that carry `custom-avs`, with caching and a per-pass cap so typing stays smooth. Fields can be hidden by name, field names can be toggled, and position/length are configurable.
 * **Refresh button** (optional) — reloads the current document from the toolbar, next to the back arrow.
+* **Capture presets** — define named buttons in Quick Capture, each with its own destination, notebook, storage path, tags, content style, and timestamp settings.
+  * **Todo presets** — append timestamped task blocks such as `- [ ] 20-10-26 14:05 Call the bank` directly to a chosen page, without creating a new document.
+  * **Custom formats** — use dynamic templates with `{text}`, `{title}`, `{date}`, `{time}`, `{datetime}`, `{tags}`, and `{source}` tokens.
 * **Tabbed settings dialog** — UI / Quick Capture / Database, with placeholders for upcoming Calendar/Kanban and Home Dashboard features.
 
 ## Install
@@ -56,6 +60,7 @@ src/
   libs/syapi.ts       thin wrappers over the SiYuan kernel HTTP API
   modules/
     captureTypes.ts   shared capture/config types
+    captureFormat.ts  preset timestamps, task lists, and dynamic templates
     captureStore.ts   persist + track unsorted captures
     quickCapture.ts   unified capture dialog (inbox/daily/card/database/page)
     triageGallery.ts  capture inbox dock (triage/route/archive)
@@ -74,13 +79,34 @@ Open the settings dialog (plugin settings in SiYuan, or the ⚡ top-bar menu).
 | Unsorted inbox page | — | Document used to persist unsorted captures |
 | Favorite databases / pages | — | Attribute views and documents offered as capture targets |
 | Quick capture shortcut | `⇧⌘Q` | Takes effect after a plugin restart |
-| Cards storage path | `/Cards` | Subpath inside the cards notebook for timestamp notes |
+| Cards storage path | `/Cards` | Default subpath inside the cards notebook for timestamp notes |
+| Capture presets | — | Named Quick Capture buttons with their own destination, content style, tags, and timestamp settings |
 | Default capture target | Unsorted inbox | Preselected destination in the capture dialog |
 | Enable badges | on | Toggle the database badge row |
 | Hidden fields | `password,private_info` | Comma-separated field names to hide |
 | Show field names | on | Show the field name next to each badge |
 | Max value length / position | 60 / below | Truncation length and placement of badge values |
 | Expose refresh UI | off | Show the toolbar refresh button |
+
+### Preset formats
+
+Each capture preset can use one of three content styles:
+
+* **Plain text** — the existing text/bullet behavior.
+* **Task list** — one checkbox per non-empty line. Enable **Add timestamp to each task** to prefix each line with the current date/time (for example `DD-MM-YY HH:mm`).
+* **Custom format** — a template applied once per capture. Available tokens:
+
+| Token | Value |
+| --- | --- |
+| `{text}` | The captured text |
+| `{title}` | First non-empty line |
+| `{date}` | Date only (`DD-MM-YY`) |
+| `{time}` | Time only (`HH:mm`) |
+| `{datetime}` | Date/time using the preset’s timestamp format |
+| `{tags}` | Tags as `#tag#` |
+| `{source}` | Source URL, when provided |
+
+For a todo preset, choose **Page** as the destination, **Task list** as the content style, and enable the timestamp. The **Add todo preset** button in settings starts with those options already selected; you only need to pick the page.
 
 ## Roadmap
 

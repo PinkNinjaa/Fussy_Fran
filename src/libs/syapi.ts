@@ -95,6 +95,40 @@ export async function listDocuments(limit = 200): Promise<DocumentTarget[]> {
     );
 }
 
+/** Escape a user query for use inside a SQLite LIKE pattern (ESCAPE '\'). */
+function escapeLike(value: string): string {
+    return value
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "''")
+        .replace(/%/g, "\\%")
+        .replace(/_/g, "\\_");
+}
+
+/**
+ * Search documents by title or path, e.g. for the inbox-page picker.
+ * Empty queries fall back to the most recently updated documents.
+ */
+export async function searchDocuments(query: string, limit = 30): Promise<DocumentTarget[]> {
+    const safeLimit = Math.max(1, Math.min(Math.floor(limit), 200));
+    const trimmed = (query ?? "").trim();
+    if (!trimmed) return listDocuments(safeLimit);
+    const pattern = `%${escapeLike(trimmed)}%`;
+    return sql<DocumentTarget>(
+        `SELECT id, box, content, hpath FROM blocks ` +
+        `WHERE type = 'd' AND (hpath LIKE '${pattern}' ESCAPE '\\' OR content LIKE '${pattern}' ESCAPE '\\') ` +
+        `ORDER BY updated DESC LIMIT ${safeLimit}`
+    );
+}
+
+/** Notebook names by id, for showing full paths ("Notebook/folder/page"). */
+export async function notebookNames(): Promise<Map<string, string>> {
+    const map = new Map<string, string>();
+    for (const notebook of await lsNotebooks()) {
+        map.set(notebook.id, notebook.name);
+    }
+    return map;
+}
+
 export async function listAttributeViews(): Promise<AttributeViewTarget[]> {
     const rows = await sql<{ id: string; box: string; content: string }>(
         "SELECT id, box, content FROM blocks WHERE type = 'av' ORDER BY updated DESC"
